@@ -19,6 +19,16 @@
 #define GPIO_OUT_W1TS_REG REG(GPIO_BASE, 0x8)
 #define GPIO_OUT_W1TC_REG REG(GPIO_BASE, 0xC)
 
+#define RTC_BASE 0x60008000
+#define RTC_CNTL_WDTCONFIG0_REG REG(RTC_BASE, 0x0090)
+#define RTC_CNTL_WDTWPROTECT_REG REG(RTC_BASE, 0x00A8)
+#define RTC_CNTL_SWD_CONF_REG REG(RTC_BASE, 0x00AC)
+#define RTC_CNTL_SWD_WPROTECT_REG REG(RTC_BASE, 0x00B0)
+
+#define TIMG0_BASE 0x6001F000
+#define TIMG0_WDTCONFIG0_REG REG(TIMG0_BASE, 0x0048)
+#define TIMG0_WDTPROTECT_REG REG(TIMG0_BASE, 0x0064)
+
 static bool uart_is_busy() { return ((UART_STATUS_REG >> 16) & 0xF) > 8; }
 
 static int uart_putc(char c, FILE *file) {
@@ -82,6 +92,30 @@ void __attribute__((noreturn)) _exit(int status) {
 
   while (1)
     ;
+}
+
+static void disable_wdt() {
+  RTC_CNTL_WDTWPROTECT_REG = 0x50D83AA1;
+  RTC_CNTL_WDTCONFIG0_REG &= ~(
+      // RTC_CNTL_WDT_EN
+      (1 << 31)
+      // RTC_CNTL_WDT_FLASHBOOT_MOD_EN
+      | (1 << 12));
+  RTC_CNTL_WDTWPROTECT_REG = 0;
+
+  RTC_CNTL_SWD_WPROTECT_REG = 0x8F1D312A;
+  RTC_CNTL_SWD_CONF_REG |=
+      // RTC_CNTL_SWD_AUTO_FEED_EN
+      (1 << 31);
+  RTC_CNTL_SWD_WPROTECT_REG = 0;
+
+  TIMG0_WDTPROTECT_REG = 0x50D83AA1;
+  TIMG0_WDTCONFIG0_REG &= ~(
+      // TIMG_WDT_EN
+      (1 << 31)
+      // TIMG_WDT_FLASHBOOT_MOD_EN
+      | (1 << 14));
+  TIMG0_WDTPROTECT_REG = 0;
 }
 
 // Lean stubs
@@ -159,6 +193,8 @@ void __attribute__((noreturn)) call_start_cpu0() {
           ".option pop;");
 
   memset(&_bss_start, 0, (&_bss_end - &_bss_start));
+
+  disable_wdt();
 
   enable_gpio(10);
 

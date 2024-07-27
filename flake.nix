@@ -205,7 +205,11 @@
           '';
           installPhase = ''
             mkdir -p $out
-            esptool.py --chip esp32-c3 elf2image --flash_size 4MB -o $out/main.bin .lake/build/bin/example
+            esptool.py \
+              --chip esp32-c3 \
+              elf2image \
+              --flash_size 4MB --flash_mode dio --flash_freq 40m \
+              -o $out/main.bin .lake/build/bin/example
           '';
           NIX_CFLAGS_COMPILE = [
             # Hack because clang adds -lunwind as well for some reason by default
@@ -247,9 +251,15 @@
         pkgs.lib.mapAttrs (k: v: { type = "app"; program = "${pkgs.writeScript k v}"; }) {
           load-to-ram = ''
             ${pkgsNative.esptool}/bin/esptool.py \
-              --port /dev/ttyACM0 \
+              --port ''${1:-/dev/ttyACM0} \
               --no-stub load_ram \
               ${main-bin}
+          '';
+          flash = ''
+            ${pkgsNative.esptool}/bin/esptool.py \
+              --port ''${1:-/dev/ttyACM0} \
+              write_flash \
+              0x0 ${main-bin}
           '';
           qemu = ''
             set -e
