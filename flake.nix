@@ -235,6 +235,7 @@
             "-lInit"
           ];
         };
+        default = self.packages.${system}.example-app;
       };
 
       devShells.${system}.default = self.packages.${system}.example-app.overrideAttrs (old: {
@@ -242,6 +243,13 @@
           self.packages.${system}.qemu
           pkgs.buildPackages.llvmPackages_18.tools.clang-tools
         ];
+        compile_flags = pkgsNative.writeText "compile_flags.txt" ''
+          -target
+          riscv32-none-elf
+          -xc++
+          -Iplatform
+          -I${pkgs.lean4-runtime}/include
+        '';
       });
 
       apps.${system} =

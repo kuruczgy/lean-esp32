@@ -61,8 +61,11 @@ static int dummy_getc(FILE *file) {
   return '\0';
 }
 
-#define QEMU
-#ifdef QEMU
+// Remove this to get output on the USB serial interface instead. Use something
+// like `tio /dev/ttyACM0` to see the output from a real device.
+#define UART_OUTPUT
+
+#ifdef UART_OUTPUT
 static FILE __stdio =
     FDEV_SETUP_STREAM(uart_putc, dummy_getc, NULL, _FDEV_SETUP_RW);
 #else

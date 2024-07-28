@@ -153,6 +153,8 @@ def patterns : Array LightPattern := #[
 ]
 
 def main : IO Unit := do
+  IO.println "Hello from Lean main!"
+
   let mut appState : AppState patterns
     := AppState.init patterns (by simp [patterns])
   let mut buttonPressedPrev := false
@@ -171,5 +173,3 @@ def main : IO Unit := do
     -- Use proper timer instead of just a wait, so the frequency does not
     -- depend on the time it takes to do the update.
     delayUs 1000
-
-    IO.println "hello"
