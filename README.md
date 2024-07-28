@@ -12,11 +12,11 @@ Summary in a few bullet points:
 - No pre-compiled toolchain, binary blobs, bootloader, or anything from [ESP-IDF](https://github.com/espressif/esp-idf) is used, everything is defined in [`flake.nix`](/flake.nix) and compiled from source (or comes from the NixOS cache).
 - Everything fits into RAM, including the code and the heap.
 
-For a more detailed description of the project, you can read my article on the topic: TODO.
+For a more detailed description of the project, you can read the article on my blog about this project. TODO link
 
 ## Building and running
 
-The only tool you need is Nix, everything else is managed through it.
+The only tool you need is Nix (with flakes enabled), everything else is managed through it. (Only tested on `x86_64-linux`, if you have a different system change it in `flake.nix`.)
 
 Run `nix build .#example-app`. `result/main.bin` can be flashed onto an ESP32-C3 device that has a WS2812 compatible LED connected to GPIO 10. (I used the [Waveshare ESP32-C3-Zero](https://www.waveshare.com/wiki/ESP32-C3-Zero) development board.)
 

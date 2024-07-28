@@ -124,7 +124,7 @@
           gcc.arch = "rv32imczicsr";
 
           # This does not do really do anything since we directly override
-          # libcCross to point to picolibc, let's just set it anyway.
+          # libcCross to point to picolibc, but let's just set it anyway.
           libc = "picolibc";
 
           # Make the stdenv use clang instead of gcc.
