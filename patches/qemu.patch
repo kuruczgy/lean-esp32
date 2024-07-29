@@ -1,0 +1,13 @@
+diff --git a/meson.build b/meson.build
+index 91a0aa64c6..e8373d55b8 100644
+--- a/meson.build
++++ b/meson.build
+@@ -1655,7 +1655,7 @@ endif
+ if not gnutls_crypto.found()
+   if (not get_option('gcrypt').auto() or have_system) and not get_option('nettle').enabled()
+     gcrypt = dependency('libgcrypt', version: '>=1.8',
+-                        method: 'config-tool',
++                        method: 'pkg-config',
+                         required: get_option('gcrypt'))
+     # Debian has removed -lgpg-error from libgcrypt-config
+     # as it "spreads unnecessary dependencies" which in
