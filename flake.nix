@@ -185,7 +185,7 @@
               '';
               hash = "sha256-yJ54S+HB3CH5/wb+GFwNkz3/990J8Z6GbuttDhWqN5Q=";
             };
-            patches = finalAttrs.patches ++ [ ./patches/qemu.patch ];
+            patches = [ ./patches/qemu.patch ];
             buildInputs = finalAttrs.buildInputs ++ [ pkgsNative.libgcrypt ];
             configureFlags = finalAttrs.configureFlags ++ [ "--enable-gcrypt" ];
           });
