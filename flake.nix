@@ -254,7 +254,7 @@
           let
             main-bin = "${self.packages.${system}.example-app}/main.bin";
           in
-          pkgs.lib.mapAttrs (k: v: { type = "app"; program = "${pkgs.writeScript k v}"; }) {
+          pkgs.lib.mapAttrs (k: v: { type = "app"; program = "${pkgsNative.writeShellScript k v}"; }) {
             load-to-ram = ''
               ${pkgsNative.esptool}/bin/esptool.py \
                 --port ''${1:-/dev/ttyACM0} \
