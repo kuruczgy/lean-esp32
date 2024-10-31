@@ -14,7 +14,7 @@ Summary in a few bullet points:
 
 ## Building and running
 
-The only tool you need is Nix (with flakes enabled), everything else is managed through it. (Only tested on `x86_64-linux`, if you have a different system change it in `flake.nix`.)
+The only tool you need is Nix (with flakes enabled), everything else is managed through it. (Tested on `x86_64-linux` and `aarch64-linux`.)
 
 Run `nix build .#example-app`. `result/main.bin` can be flashed onto an ESP32-C3 device that has a WS2812 compatible LED connected to GPIO 10. (I used the [Waveshare ESP32-C3-Zero](https://www.waveshare.com/wiki/ESP32-C3-Zero) development board.)
 
