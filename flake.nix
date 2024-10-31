@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs?rev=fafe46fca0a8431dcdd3926a01fb06f51c33cab5";
   outputs = { self, nixpkgs }:
     let
       eachDefaultSystem = f: builtins.zipAttrsWith
@@ -18,7 +18,19 @@
         nixpkgs-patched = pkgsNative.applyPatches {
           name = "nixpkgs-patched";
           src = nixpkgs;
-          patches = [ ./patches/nixpkgs.patch ];
+          patches = [
+            (pkgsNative.fetchpatch {
+              # llvmPackages.libcxx: use hasSharedLibraries instead of isStatic
+              url = "https://github.com/NixOS/nixpkgs/commit/5a52d927a64347319bc08584f96e6ad0f2ec6f4f.patch";
+              hash = "sha256-pviFTa5C3Lk6YyyjQ9hEMUQpk4kfAQ4wPVEhwhK0lIc=";
+            })
+            (pkgsNative.fetchpatch {
+              # lib.systems: add various has* flags useful for embedded systems
+              url = "https://github.com/NixOS/nixpkgs/commit/e76ac5d0835e9e939c518ecb161491e595094907.patch";
+              hash = "sha256-3eJXYyMwkl6749ydcQ/pSNxKqjTOzpiRUUSvcOQMFWU=";
+            })
+            ./patches/nixpkgs-ffunction-sections.patch
+          ];
         };
 
         # Nixpkgs only has newlib, not picolibc, so we have to package it.
@@ -185,7 +197,7 @@
               '';
               hash = "sha256-yJ54S+HB3CH5/wb+GFwNkz3/990J8Z6GbuttDhWqN5Q=";
             };
-            patches = finalAttrs.patches ++ [ ./patches/qemu.patch ];
+            patches = [ ./patches/qemu.patch ];
             buildInputs = finalAttrs.buildInputs ++ [ pkgsNative.libgcrypt ];
             configureFlags = finalAttrs.configureFlags ++ [ "--enable-gcrypt" ];
           });
