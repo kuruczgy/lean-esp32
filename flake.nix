@@ -275,6 +275,9 @@
                 --format raw --fill-flash-size 4MB \
                 -o /tmp/merged-flash.bin 0x0000 \
                 ${main-bin}
+              echo '==='
+              echo 'Starting QEMU. Exit with Ctrl-A X.'
+              echo '==='
               ${self.packages.${system}.qemu}/bin/qemu-system-riscv32 \
                 -M esp32c3 \
                 -drive file=/tmp/merged-flash.bin,if=mtd,format=raw \
