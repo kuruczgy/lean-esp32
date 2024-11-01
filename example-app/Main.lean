@@ -104,10 +104,10 @@ structure AppState where
 
 /-- Switch to the next pattern. It will start playing from its initial state. -/
 def AppState.nextPattern (s : AppState patterns) : AppState patterns :=
-  let patternIndex := s.patternIndex + Fin.ofNat' 1 (
+  let patternIndex := s.patternIndex + @Fin.ofNat' _ (
     match e : patterns.size with
     | 0 => Fin.elim0 (e ▸ s.patternIndex)
-    | _ + 1 => (by omega))
+    | _ + 1 => (by constructor; omega)) 1
   {
     patternIndex,
     state := (patterns.get patternIndex).init,
@@ -121,8 +121,8 @@ def AppState.step (s : AppState patterns) : AppState patterns :=
 def AppState.color (s : AppState patterns) : Color := (patterns.get s.patternIndex).color s.state
 
 /-- Initialize a new app state. -/
-def AppState.init (hPatterns : patterns.size > 0) : AppState patterns :=
-  let patternIndex := Fin.ofNat' 0 hPatterns
+def AppState.init (_ : NeZero patterns.size) : AppState patterns :=
+  let patternIndex := Fin.ofNat' _ 0
   {
     patternIndex,
     state := (patterns.get patternIndex).init,
@@ -156,7 +156,7 @@ def main : IO Unit := do
   IO.println "Hello from Lean main!"
 
   let mut appState : AppState patterns
-    := AppState.init patterns (by simp [patterns])
+    := AppState.init patterns (by constructor; simp [patterns])
   let mut buttonPressedPrev := false
   while true do
     -- Read the button state, advance to the next pattern when pressed

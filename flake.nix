@@ -67,6 +67,9 @@
 
             # Use the CMakeLists.txt from src instead of the root directory.
             cd src
+
+            # Disable LibUV dependency
+            sed -e '/# LibUV/,+2d' -i CMakeLists.txt
           '';
           installPhase = ''
             mkdir -p $out/lib
@@ -171,6 +174,17 @@
               lean4-runtime = self.callPackage lean4-runtime-pkg { };
               lean4-stdenv-cc = self.callPackage lean4-stdenv-cc-pkg { };
               lean4-init = self.callPackage lean4-init-pkg { };
+
+              lean4 = super.lean4.overrideAttrs {
+                version = "4.13.0";
+                src = self.fetchFromGitHub {
+                  owner = "leanprover";
+                  repo = "lean4";
+                  rev = "v4.13.0";
+                  hash = "sha256-UemA3H0YxdrXQ/6uG6YFphj/6ab2jb0zbRkDZaMSXok=";
+                };
+                buildInputs = [ self.gmp self.cadical self.libuv ];
+              };
             })
           ];
         };
