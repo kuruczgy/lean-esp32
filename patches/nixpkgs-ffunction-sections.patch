@@ -1,0 +1,25 @@
+From 39d3adfb1a91cff9a49172c3e17e6632a00f4b35 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gy=C3=B6rgy=20Kurucz?= <me@kuruczgy.com>
+Date: Thu, 31 Oct 2024 15:24:34 +0100
+Subject: [PATCH] [HACK DO NOT MERGE] -ffunction-sections
+
+---
+ pkgs/development/compilers/llvm/common/libcxx/default.nix | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/pkgs/development/compilers/llvm/common/libcxx/default.nix b/pkgs/development/compilers/llvm/common/libcxx/default.nix
+index 57fd748d0f39..8be9c118d7f5 100644
+--- a/pkgs/development/compilers/llvm/common/libcxx/default.nix
++++ b/pkgs/development/compilers/llvm/common/libcxx/default.nix
+@@ -129,6 +129,8 @@ in
+ stdenv.mkDerivation (rec {
+   inherit pname version cmakeFlags patches;
+ 
++  NIX_CFLAGS_COMPILE = [ "-ffunction-sections" ];
++
+   src = src';
+ 
+   outputs = [ "out" "dev" ];
+-- 
+2.47.0
+
