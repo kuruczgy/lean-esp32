@@ -1,25 +1,43 @@
-From 39d3adfb1a91cff9a49172c3e17e6632a00f4b35 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Gy=C3=B6rgy=20Kurucz?= <me@kuruczgy.com>
-Date: Thu, 31 Oct 2024 15:24:34 +0100
-Subject: [PATCH] [HACK DO NOT MERGE] -ffunction-sections
-
----
- pkgs/development/compilers/llvm/common/libcxx/default.nix | 2 ++
- 1 file changed, 2 insertions(+)
-
 diff --git a/pkgs/development/compilers/llvm/common/libcxx/default.nix b/pkgs/development/compilers/llvm/common/libcxx/default.nix
-index 57fd748d0f39..8be9c118d7f5 100644
+index fe9ae5d0d502..777610f10edc 100644
 --- a/pkgs/development/compilers/llvm/common/libcxx/default.nix
 +++ b/pkgs/development/compilers/llvm/common/libcxx/default.nix
-@@ -129,6 +129,8 @@ in
- stdenv.mkDerivation (rec {
-   inherit pname version cmakeFlags patches;
+@@ -115,6 +115,11 @@ let
+     "-DUNIX=ON" # Required otherwise libc++ fails to detect the correct linker
+   ] ++ cxxCMakeFlags
+     ++ lib.optionals (cxxabi == null) cxxabiCMakeFlags
++    ++ [
++      "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
++      "-DCMAKE_C_FLAGS=-flto"
++      "-DCMAKE_CXX_FLAGS=-flto"
++    ]
+     ++ devExtraCmakeFlags;
  
-+  NIX_CFLAGS_COMPILE = [ "-ffunction-sections" ];
-+
+ in
+@@ -124,6 +129,8 @@ stdenv.mkDerivation (rec {
+ 
    src = src';
  
++  env.NIX_CFLAGS_COMPILE_BEFORE = [ "-fno-lto" ];
++
    outputs = [ "out" "dev" ];
--- 
-2.47.0
-
+ 
+   preConfigure = lib.optionalString stdenv.hostPlatform.isMusl ''
+diff --git a/pkgs/stdenv/adapters.nix b/pkgs/stdenv/adapters.nix
+index c5815d483bde..d7fc2ee5d4e2 100644
+--- a/pkgs/stdenv/adapters.nix
++++ b/pkgs/stdenv/adapters.nix
+@@ -314,6 +314,13 @@ rec {
+       });
+     });
+ 
++  withCFlagsBefore = compilerFlags: stdenv:
++    stdenv.override (old: {
++      mkDerivationFromStdenv = extendMkDerivationArgs old (args: {
++        env = (args.env or {}) // { NIX_CFLAGS_COMPILE_BEFORE = "${toString compilerFlags} " + toString (args.env.NIX_CFLAGS_COMPILE_BEFORE or ""); };
++      });
++    });
++
+   # Overriding the SDK changes the Darwin SDK used to build the package, which:
+   # * Ensures that the compiler and bintools have the correct Libsystem version; and
+   # * Replaces any SDK references with those in the SDK corresponding to the requested SDK version.

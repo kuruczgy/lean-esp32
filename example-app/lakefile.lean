@@ -2,6 +2,8 @@ import Lake
 open Lake DSL
 
 package «example» where
+  -- backend := .llvm
+
   -- Build start.o with:
   -- $CC -c start.c
   moreLinkArgs := #["-Wl,--allow-multiple-definition", "start.o"]

@@ -81,13 +81,19 @@
             "-DUSE_GMP=OFF"
             "-DMULTI_THREAD=OFF"
             "-DSMALL_ALLOCATOR=OFF"
+
+            # LTO workaround
+            "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
+            "-DCMAKE_C_FLAGS=-flto"
+            "-DLEAN_EXTRA_CXX_FLAGS=-flto"
           ];
           buildFlags = [ "leanrt" ];
           nativeBuildInputs = [ cmake ];
-          NIX_CFLAGS_COMPILE = [
-            "-nostdlib++"
-            "-ffunction-sections"
-          ];
+          NIX_CFLAGS_COMPILE = [ "-nostdlib++" ];
+
+          # LTO workaround
+          env.NIX_CFLAGS_COMPILE_BEFORE = [ "-fno-lto" ];
+          env.NIX_DEBUG = 1;
         };
 
         # Basically the only thing this does is make lean use stdenv cc-wrapper
@@ -127,7 +133,6 @@
           '';
           NIX_CFLAGS_COMPILE = [
             "-nostdlib++"
-            "-ffunction-sections"
             "-I${lean4-runtime}/include"
           ];
         };
@@ -154,13 +159,21 @@
           };
 
           # Disable all hardening flags, since some can inadvertently increase code size.
-          config.replaceCrossStdenv = { buildPackages, baseStdenv }: baseStdenv.override (_: {
-            cc = buildPackages.llvmPackages_18.tools.clang.override (old: {
-              bintools = old.bintools.override (_: {
-                defaultHardeningFlags = [ ];
-              });
-            });
-          });
+          config.replaceCrossStdenv = { buildPackages, baseStdenv }:
+            let
+              noHardeningFlagsStdenv = baseStdenv.override {
+                cc = buildPackages.llvmPackages_18.tools.clang.override (old: {
+                  bintools = old.bintools.override {
+                    defaultHardeningFlags = [ ];
+                  };
+                });
+              };
+              cFlagsStdenv = buildPackages.withCFlagsBefore [
+                "-flto"
+              ]
+                noHardeningFlagsStdenv;
+            in
+            cFlagsStdenv // { inherit baseStdenv; };
 
           overlays = [
             (self: super: {
@@ -174,6 +187,7 @@
               lean4-runtime = self.callPackage lean4-runtime-pkg { };
               lean4-stdenv-cc = self.callPackage lean4-stdenv-cc-pkg { };
               lean4-init = self.callPackage lean4-init-pkg { };
+
 
               lean4 = super.lean4.overrideAttrs {
                 version = "4.13.0";
@@ -191,6 +205,9 @@
       in
       {
         packages = {
+          inherit (pkgs) picolibc lean4-runtime lean4-init;
+          libcxx = pkgs.llvmPackages_18.libraries.libcxx;
+
           qemu = (pkgsNative.qemu.override {
             hostCpuTargets = [ "xtensa-softmmu" "riscv32-softmmu" ];
           }).overrideAttrs (finalAttrs: {
@@ -248,7 +265,6 @@
               # Linker flags
               "-Wl,-T${./platform/esp32-c3.ld}"
               "-Wl,--gc-sections"
-              "-ffunction-sections"
 
               # Lean include path and libraries
               "-I${pkgs.lean4-runtime}/include"
@@ -314,6 +330,29 @@
                 -semihosting \
                 -serial mon:stdio
             '';
+          };
+
+        checks =
+          let
+            checkIsBytecode = { pkg, archive ? null, file }: pkgs.runCommandCC "bytecode-check"
+              {
+                nativeBuildInputs = [ pkgs.buildPackages.file ];
+              } ''
+              ${if archive == null then
+                "ln -s ${pkg}/${file} ./file-to-check"
+                else
+                ''
+                  $AR x ${pkg}/${archive}
+                  ln -s ${file} ./file-to-check
+                ''
+              }
+              [ "$(file --dereference --brief ./file-to-check)" = "LLVM IR bitcode" ] && (echo ok > $out)
+            '';
+          in
+          {
+            picolibc-check = checkIsBytecode { pkg = pkgs.picolibc; archive = "lib/libc.a"; file = "strcpy.c.o"; };
+            lean4-runtime-check = checkIsBytecode { pkg = pkgs.lean4-runtime; archive = "lib/libleanrt.a"; file = "apply.cpp.obj"; };
+            lean4-init-check = checkIsBytecode { pkg = pkgs.lean4-init; archive = "lib/libInit.a"; file = "BitVec.o"; };
           };
       });
 }
