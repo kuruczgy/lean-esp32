@@ -93,7 +93,6 @@
 
           # LTO workaround
           env.NIX_CFLAGS_COMPILE_BEFORE = [ "-fno-lto" ];
-          env.NIX_DEBUG = 1;
         };
 
         # Basically the only thing this does is make lean use stdenv cc-wrapper
@@ -136,6 +135,61 @@
             "-I${lean4-runtime}/include"
           ];
         };
+
+        freertos-pkg = { stdenv, fetchFromGitHub, runCommand, writeTextFile, cmake }:
+          let
+            esp-idf = fetchFromGitHub {
+              owner = "espressif";
+              repo = "esp-idf";
+              tag = "v5.3.2";
+              hash = "sha256-KHoKgv8yHv+a+HIVkrceeI5eF7MR62UU7ex/lI0jyKM=";
+            };
+            port = runCommand "port" { } ''
+              mkdir -p $out
+              cp ${esp-idf}/components/freertos/FreeRTOS-Kernel/portable/riscv/{port.c,portasm.S} $out/
+              cp ${esp-idf}/components/freertos/FreeRTOS-Kernel/portable/riscv/include/freertos/portmacro.h $out/
+            '';
+            src = fetchFromGitHub {
+              owner = "FreeRTOS";
+              repo = "FreeRTOS-Kernel";
+              tag = "V11.1.0";
+              hash = "sha256-wcayA4YCfHGD6pwzG40IW2L0RhZ6KwumtbwNZpxUk7s=";
+            };
+            cmake-pre = writeTextFile {
+              name = "cmake-pre.txt";
+              text = ''
+                add_library(freertos_config INTERFACE)
+                target_include_directories(freertos_config SYSTEM INTERFACE ${src}/examples/template_configuration)
+
+                add_library(freertos_kernel_port OBJECT)
+                target_sources(freertos_kernel_port PRIVATE
+                  ${port}/port.c
+                  ${port}/portasm.S
+                )
+
+                add_library(freertos_kernel_port_headers INTERFACE)
+                target_include_directories(freertos_kernel_port_headers INTERFACE ${port})
+                target_link_libraries(freertos_kernel_port PRIVATE freertos_kernel_port_headers freertos_kernel_include)
+              '';
+            };
+          in
+          stdenv.mkDerivation {
+            name = "freertos";
+            inherit src;
+            nativeBuildInputs = [ cmake ];
+            preConfigure = ''
+              sed -e '2s|^|include(${cmake-pre})\n|' -i CMakeLists.txt
+            '';
+            cmakeFlags = [
+              "-DFREERTOS_PORT=A_CUSTOM_PORT"
+
+              # LTO workaround
+              "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
+              "-DCMAKE_C_FLAGS=-flto"
+              "-DCMAKE_CXX_FLAGS=-flto"
+            ];
+            env.NIX_CFLAGS_COMPILE_BEFORE = [ "-fno-lto" ];
+          };
 
         # A nix package set to cross compile from x86_64-linux to the esp32-c3.
         # In theory all packages in this package set are meant to be run on the
@@ -188,6 +242,7 @@
               lean4-stdenv-cc = self.callPackage lean4-stdenv-cc-pkg { };
               lean4-init = self.callPackage lean4-init-pkg { };
 
+              freertos = self.callPackage freertos-pkg { };
 
               lean4 = super.lean4.overrideAttrs {
                 version = "4.13.0";
@@ -205,7 +260,7 @@
       in
       {
         packages = {
-          inherit (pkgs) picolibc lean4-runtime lean4-init;
+          inherit (pkgs) picolibc lean4-runtime lean4-init freertos;
           libcxx = pkgs.llvmPackages_18.libraries.libcxx;
 
           qemu = (pkgsNative.qemu.override {
