@@ -21,7 +21,7 @@
           patches = [
             (pkgsNative.fetchpatch {
               # lib.systems: add various has* flags useful for embedded systems
-              url = "https://github.com/NixOS/nixpkgs/commit/379db2ab04ffeaa759c3ac55e24948d436c9130c.patch";
+              url = "https://github.com/NixOS/nixpkgs/commit/d6e71a318d16710225a5f20a8daf71a44c392207.patch";
               hash = "sha256-txYCEjRiSmzHj/60jjJKWWaohhrsxcj/Fz0VC6pBxZU=";
             })
             ./patches/nixpkgs-rust-libunwind-libgcc-hack.patch
