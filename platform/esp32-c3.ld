@@ -36,7 +36,18 @@ SECTIONS {
     *(.rodata*)
     *(.data)
     *(.data*)
+
     _data_end = ABSOLUTE(.);
+  } > dram_seg
+
+  .got : {
+    *(.got)
+  } > dram_seg
+  .tbss : {
+    *(.tbss)
+  } > dram_seg
+  .init_array : {
+    *(.init_array)
   } > dram_seg
 
   .bss (NOLOAD) : {
@@ -46,6 +57,7 @@ SECTIONS {
     *(.bss*)
     *(.sbss)
     *(COMMON)
+
     _bss_end = ABSOLUTE(.);
   } > dram_seg
 

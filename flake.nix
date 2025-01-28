@@ -25,7 +25,7 @@
               hash = "sha256-txYCEjRiSmzHj/60jjJKWWaohhrsxcj/Fz0VC6pBxZU=";
             })
             ./patches/nixpkgs-rust-libunwind-libgcc-hack.patch
-            ./patches/nixpkgs-ffunction-sections.patch
+            # ./patches/nixpkgs-ffunction-sections.patch
           ];
         };
 
@@ -233,6 +233,8 @@
                 elf2image \
                 --flash_size 4MB --flash_mode dio --flash_freq 40m \
                 -o $out/main.bin .lake/build/bin/example
+
+              cp example.map $out/
             '';
             NIX_CFLAGS_COMPILE = [
               # Hack because clang adds -lunwind as well for some reason by default
@@ -258,7 +260,10 @@
               "-lInit"
             ];
 
-            NIX_DEBUG = 1;
+            # NIX_DEBUG = 1;
+            NIX_LDFLAGS = [
+              "-Map=example.map"
+            ];
           };
           default = self.packages.${system}.example-app;
         };
