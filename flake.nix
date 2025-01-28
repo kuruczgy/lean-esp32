@@ -20,16 +20,12 @@
           src = nixpkgs;
           patches = [
             (pkgsNative.fetchpatch {
-              # llvmPackages.libcxx: use hasSharedLibraries instead of isStatic
-              url = "https://github.com/NixOS/nixpkgs/commit/5a52d927a64347319bc08584f96e6ad0f2ec6f4f.patch";
-              hash = "sha256-pviFTa5C3Lk6YyyjQ9hEMUQpk4kfAQ4wPVEhwhK0lIc=";
-            })
-            (pkgsNative.fetchpatch {
               # lib.systems: add various has* flags useful for embedded systems
-              url = "https://github.com/NixOS/nixpkgs/commit/e76ac5d0835e9e939c518ecb161491e595094907.patch";
-              hash = "sha256-3eJXYyMwkl6749ydcQ/pSNxKqjTOzpiRUUSvcOQMFWU=";
+              url = "https://github.com/NixOS/nixpkgs/commit/379db2ab04ffeaa759c3ac55e24948d436c9130c.patch";
+              hash = "";
             })
-            ./patches/nixpkgs-ffunction-sections.patch
+            ./patches/nixpkgs-rust-libunwind-libgcc-hack.patch
+            # ./patches/nixpkgs-ffunction-sections.patch
           ];
         };
 
@@ -151,11 +147,13 @@
 
             # Make the stdenv use clang instead of gcc.
             useLLVM = true;
+
+            rust.rustcTarget = "riscv32imc-unknown-none-elf";
           };
 
           # Disable all hardening flags, since some can inadvertently increase code size.
           config.replaceCrossStdenv = { buildPackages, baseStdenv }: baseStdenv.override (_: {
-            cc = buildPackages.llvmPackages_18.tools.clang.override (old: {
+            cc = buildPackages.llvmPackages_19.tools.clang.override (old: {
               bintools = old.bintools.override (_: {
                 defaultHardeningFlags = [ ];
               });
@@ -166,7 +164,8 @@
             (self: super: {
               picolibc = self.callPackage picolibc-pkg {
                 stdenv = self.overrideCC self.stdenv
-                  self.buildPackages.llvmPackages_18.tools.clangNoLibc;
+                  self.buildPackages.llvmPackages_19.tools.clangNoLibc;
+                # stdenv = self.stdenvNoLibc;
               };
 
               libcCross = self.targetPackages.picolibc;
@@ -262,19 +261,31 @@
           default = self.packages.${system}.example-app;
         };
 
-        devShells.default = self.packages.${system}.example-app.overrideAttrs (old: {
-          nativeBuildInputs = old.nativeBuildInputs ++ [
-            self.packages.${system}.qemu
-            pkgs.buildPackages.llvmPackages_18.tools.clang-tools
-          ];
-          compile_flags = pkgsNative.writeText "compile_flags.txt" ''
-            -target
-            riscv32-none-elf
-            -xc++
-            -Iplatform
-            -I${pkgs.lean4-runtime}/include
-          '';
-        });
+        devShells = {
+          default = self.packages.${system}.example-app.overrideAttrs (old: {
+            nativeBuildInputs = old.nativeBuildInputs ++ [
+              self.packages.${system}.qemu
+              pkgs.buildPackages.llvmPackages_19.tools.clang-tools
+            ];
+            compile_flags = pkgsNative.writeText "compile_flags.txt" ''
+              -target
+              riscv32-none-elf
+              -xc++
+              -Iplatform
+              -I${pkgs.lean4-runtime}/include
+            '';
+          });
+
+          rust = pkgs.mkShell {
+            nativeBuildInputs = [
+              pkgs.buildPackages.cargo
+              pkgs.buildPackages.rustc
+              pkgs.buildPackages.llvmPackages_19.tools.libllvm
+            ];
+          };
+
+          test = pkgs.buildPackages.rustPackages.rustc-unwrapped;
+        };
 
         apps =
           let
