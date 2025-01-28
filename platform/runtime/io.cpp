@@ -10,6 +10,7 @@ Authors: Leonardo de Moura, Sebastian Ullrich
 #include <cctype>
 #include <csignal>
 #include <cstdlib>
+#include <errno.h>
 #include <fcntl.h>
 #include <string>
 #include <sys/file.h>

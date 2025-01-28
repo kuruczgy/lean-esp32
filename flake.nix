@@ -1,5 +1,5 @@
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs?rev=fafe46fca0a8431dcdd3926a01fb06f51c33cab5";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
   outputs = { self, nixpkgs }:
     let
       eachDefaultSystem = f: builtins.zipAttrsWith
@@ -22,10 +22,10 @@
             (pkgsNative.fetchpatch {
               # lib.systems: add various has* flags useful for embedded systems
               url = "https://github.com/NixOS/nixpkgs/commit/379db2ab04ffeaa759c3ac55e24948d436c9130c.patch";
-              hash = "";
+              hash = "sha256-txYCEjRiSmzHj/60jjJKWWaohhrsxcj/Fz0VC6pBxZU=";
             })
             ./patches/nixpkgs-rust-libunwind-libgcc-hack.patch
-            # ./patches/nixpkgs-ffunction-sections.patch
+            ./patches/nixpkgs-ffunction-sections.patch
           ];
         };
 
@@ -257,6 +257,8 @@
               "-L${pkgs.lean4-init}/lib"
               "-lInit"
             ];
+
+            NIX_DEBUG = 1;
           };
           default = self.packages.${system}.example-app;
         };
