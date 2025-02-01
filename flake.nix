@@ -24,6 +24,11 @@
               url = "https://github.com/NixOS/nixpkgs/commit/d6e71a318d16710225a5f20a8daf71a44c392207.patch";
               hash = "sha256-txYCEjRiSmzHj/60jjJKWWaohhrsxcj/Fz0VC6pBxZU=";
             })
+            (pkgsNative.fetchurl {
+              # cargo,clippy,rustfmt,rustc: 1.83.0 -> 1.84.0
+              url = "https://github.com/NixOS/nixpkgs/commit/5ff390289e135e883d93ba6c5e03ef159fe1db2c.patch";
+              hash = "sha256-BN3gTxDNZ8dwo7yxgO48VdFDbE5Po+n6o0+SCVk9uLg=";
+            })
             ./patches/nixpkgs-rust-libunwind-libgcc-hack.patch
             # ./patches/nixpkgs-ffunction-sections.patch
           ];
@@ -285,9 +290,12 @@
 
           rust = pkgs.mkShell {
             nativeBuildInputs = [
+              pkgs.pkgsBuildBuild.clang
               pkgs.buildPackages.cargo
               pkgs.buildPackages.rustc
               pkgs.buildPackages.llvmPackages_19.tools.libllvm
+              pkgs.buildPackages.esptool
+              pkgs.buildPackages.espflash
             ];
           };
 
@@ -313,20 +321,12 @@
             '';
             qemu = ''
               set -e
-              ${pkgsNative.esptool}/bin/esptool.py \
-                --chip esp32-c3 \
-                merge_bin \
-                --format raw --fill-flash-size 4MB \
-                -o /tmp/merged-flash.bin 0x0000 \
-                ${main-bin}
               echo '==='
               echo 'Starting QEMU. Exit with Ctrl-A X.'
               echo '==='
               ${self.packages.${system}.qemu}/bin/qemu-system-riscv32 \
                 -M esp32c3 \
-                -drive file=/tmp/merged-flash.bin,if=mtd,format=raw \
-                -drive file=/dev/null,if=none,format=raw,id=efuse \
-                -global driver=nvram.esp32c3.efuse,property=drive,value=efuse \
+                -drive file=$1,if=mtd,format=raw \
                 -global driver=timer.esp32c3.timg,property=wdt_disable,value=true \
                 -nographic \
                 -semihosting \
