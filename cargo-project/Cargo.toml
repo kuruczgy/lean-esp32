@@ -14,5 +14,7 @@ esp-backtrace = { version = "0.15.0", features = [
 esp-hal = { version = "0.23.1", features = [
     "esp32c3",
 ] }
+esp-hal-smartled = { git = "https://github.com/esp-rs/esp-hal-community.git", rev = "ad75112ae5d4b4fe2fe927356dc281283cafedfc" }
 esp-println = { version = "0.13.0", features = ["esp32c3", "log"] }
 log = { version = "0.4.25" }
+smart-leds = "0.4.0"

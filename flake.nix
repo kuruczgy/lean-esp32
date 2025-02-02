@@ -300,6 +300,8 @@
               pkgs.buildPackages.rustfmt
               pkgs.buildPackages.rust-analyzer
 
+              pkgs.buildPackages.gdb
+
               # For testing
               pkgs.buildPackages.esptool
             ];

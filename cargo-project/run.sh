@@ -13,6 +13,8 @@ direct_boot() {
 
   $OBJDUMP -D $elf_file > disasm.txt
 
+  esptool.py image_info out.bin
+
   esptool.py \
     --chip esp32-c3 \
     merge_bin \
