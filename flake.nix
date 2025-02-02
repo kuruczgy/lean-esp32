@@ -294,9 +294,17 @@
               pkgs.buildPackages.cargo
               pkgs.buildPackages.rustc
               pkgs.buildPackages.llvmPackages_19.tools.libllvm
-              pkgs.buildPackages.esptool
               pkgs.buildPackages.espflash
+
+              # Rust dev tools
+              pkgs.buildPackages.rustfmt
+              pkgs.buildPackages.rust-analyzer
+
+              # For testing
+              pkgs.buildPackages.esptool
             ];
+
+            RUST_SRC_PATH = "${pkgs.buildPackages.rust.packages.stable.rustPlatform.rustLibSrc}";
           };
 
           test = pkgs.buildPackages.rustPackages.rustc-unwrapped;

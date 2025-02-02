@@ -1,7 +1,8 @@
 [build]
 rustflags = [
-  "-C", "link-arg=-Tlinkall.x",
-  # "-C", "link-arg=-T../platform/esp32-c3.ld",
+  # "-C", "link-arg=-Tmy_linkall.x",
+  "-C", "link-arg=-T../platform/esp32-c3.ld",
+  "-C", "link-arg=-Map=example.map",
   # Required to obtain backtraces (e.g. when using the "esp-backtrace" crate.)
   # NOTE: May negatively impact performance of produced code
   "-C", "force-frame-pointers",
