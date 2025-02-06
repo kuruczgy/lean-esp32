@@ -11,7 +11,7 @@ Author: Leonardo de Moura
 #else
 #include "runtime/mpn.h"
 #endif
-#include "runtime/int64.h"
+#include "runtime/int.h"
 #include <lean/lean.h>
 #include <limits>
 
@@ -264,10 +264,15 @@ public:
   // a <- b / 2^k
   friend void div2k(mpz &a, mpz const &b, unsigned k);
 
-  unsigned mod8() const;
-  unsigned mod16() const;
-  unsigned mod32() const;
+  uint8 mod8() const;
+  uint16 mod16() const;
+  uint32 mod32() const;
   uint64 mod64() const;
+
+  int8 smod8() const;
+  int16 smod16() const;
+  int32 smod32() const;
+  int64 smod64() const;
 
   /**
      \brief Return the position of the most significant bit.

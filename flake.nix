@@ -54,6 +54,7 @@
           pname = "lean4-runtime";
           version = buildPackages.lean4.version;
           src = buildPackages.lean4.src;
+          patches = [ ./patches/lean4-remove-libuv-dep.patch ];
           preConfigure = ''
             # Use the runtime sources from this repo.
             rm -r src/runtime
@@ -62,9 +63,6 @@
 
             # Use the CMakeLists.txt from src instead of the root directory.
             cd src
-
-            # Disable LibUV dependency
-            sed -e '/# LibUV/,+2d' -i CMakeLists.txt
           '';
           installPhase = ''
             mkdir -p $out/lib
@@ -171,14 +169,13 @@
               lean4-init = self.callPackage lean4-init-pkg { };
 
               lean4 = super.lean4.overrideAttrs {
-                version = "4.13.0";
+                version = "4.16.0";
                 src = self.fetchFromGitHub {
                   owner = "leanprover";
                   repo = "lean4";
-                  rev = "v4.13.0";
-                  hash = "sha256-UemA3H0YxdrXQ/6uG6YFphj/6ab2jb0zbRkDZaMSXok=";
+                  tag = "v4.16.0";
+                  hash = "sha256-RdFTxLk0Yahwhu/oQeTappvWnUtnim63dxN7gmU8Jt8=";
                 };
-                buildInputs = [ self.gmp self.cadical self.libuv ];
               };
             })
           ];

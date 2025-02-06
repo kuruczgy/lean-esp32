@@ -1,0 +1,26 @@
+Update Lean to version 4.16.0
+
+To get a list of potential updates to the runtime, I ran `git log
+v4.13.0..v4.16.0 -- src/runtime src/include/lean/lean.h`, and manually went
+through the list.
+
+This turned out to contain quite a lot of relevant runtime updates. I
+incorporated changes from the following commits, hopefully I did not miss
+anything relevant:
+
+193b6f2bec332ac0bce33e10856a96163d4be456
+844e7ae7eb27725bfcde528e43c006fbefe5a3bd
+93dd6f2b367a54294856b811084160683b3ba268
+c77b6a2c642cab928e12918be677b058837d3c3f
+f721f94045cae6933fe830885b5378922381b0c4
+e0d7c3ac79bd9167ce7d295f51bf3779a04f7a07
+688ee4c88722ca191981246f7732f25caed81cac
+64b35a8c194da9f36329ee2b5d04e0e757f8c553
+ecbaeff24b2cb36d5c218f4ed6c92d6d55524048
+f13e5ca8521a2cae5882b972eefde3e3a22cc908
+4969ec9cdb9a4a6d148b46df3850cdabae3f70ae
+86f303774a7fbf38406ae13bd4b66f2753643a45
+0b8f50f78d9bb94c5034a5044e662b0b8e37e7ca
+2e11b8ac8879f48ad73ffa06386c017aa58fabe5
+5c333ef9695c23f2ea02dae7a4b80fd9e567ea75
+633c825ff3f5392bfbf5ffba862b4dbe098f1a53

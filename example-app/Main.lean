@@ -63,7 +63,7 @@ def LightPattern.flicker : LightPattern := {
     }
 }
 
-inductive ColorChannel := | Red | Green | Blue
+inductive ColorChannel where | Red | Green | Blue
 def ColorChannel.toColor (v : UInt8 := 0xFF) : ColorChannel → Color
 | Red => { red := v, green := 0, blue := 0 }
 | Green => { red := 0, green := v, blue := 0 }
@@ -88,7 +88,7 @@ def LightPattern.breathe (cycle : UInt16) (c : ColorChannel) : LightPattern := {
   color := fun i =>
     let f := if i < cycle then i else cycle * 2 - i
     let idx := f.toUInt32 * 256 / cycle.toUInt32
-    c.toColor <| gamma <| Fin.ofNat idx.toNat
+    c.toColor <| gamma <| Fin.ofNat' _ idx.toNat
 }
 
 section AppState
@@ -100,7 +100,7 @@ structure AppState where
   /-- The index of the currently playing light pattern. -/
   patternIndex : Fin patterns.size
   /-- The current state of the light pattern, its type depends on the current index. -/
-  state : (patterns.get patternIndex).State
+  state : patterns[patternIndex].State
 
 /-- Switch to the next pattern. It will start playing from its initial state. -/
 def AppState.nextPattern (s : AppState patterns) : AppState patterns :=
@@ -110,22 +110,22 @@ def AppState.nextPattern (s : AppState patterns) : AppState patterns :=
     | _ + 1 => (by constructor; omega)) 1
   {
     patternIndex,
-    state := (patterns.get patternIndex).init,
+    state := patterns[patternIndex].init,
   }
 
 /-- Update the state of the current pattern. -/
 def AppState.step (s : AppState patterns) : AppState patterns :=
-  { s with state := (patterns.get s.patternIndex).step s.state }
+  { s with state := patterns[s.patternIndex].step s.state }
 
 /-- Get the current output color. -/
-def AppState.color (s : AppState patterns) : Color := (patterns.get s.patternIndex).color s.state
+def AppState.color (s : AppState patterns) : Color := patterns[s.patternIndex].color s.state
 
 /-- Initialize a new app state. -/
 def AppState.init (_ : NeZero patterns.size) : AppState patterns :=
   let patternIndex := Fin.ofNat' _ 0
   {
     patternIndex,
-    state := (patterns.get patternIndex).init,
+    state := patterns[patternIndex].init,
   }
 
 end AppState

@@ -183,6 +183,27 @@ extern "C" LEAN_EXPORT obj_res lean_io_prim_handle_put_str(b_obj_arg h,
   }
 }
 
+/* Std.Time.Timestamp.now : IO Timestamp */
+extern "C" LEAN_EXPORT obj_res lean_get_current_time(obj_arg /* w */) {
+  abort();
+}
+
+/* Std.Time.Database.Windows.getNextTransition : @&String -> Int64 -> Bool -> IO
+ * (Option (Int64 × TimeZone)) */
+extern "C" LEAN_EXPORT obj_res
+lean_windows_get_next_transition(b_obj_arg timezone_str, uint64_t tm_obj,
+                                 uint8 default_time, obj_arg /* w */) {
+  return lean_io_result_mk_error(lean_decode_io_error(
+      EINVAL, mk_string("failed to get timezone, its windows only.")));
+}
+
+/* Std.Time.Database.Windows.getLocalTimeZoneIdentifierAt : Int64 → IO String */
+extern "C" LEAN_EXPORT obj_res
+lean_get_windows_local_timezone_id_at(uint64_t tm_obj, obj_arg /* w */) {
+  return lean_io_result_mk_error(lean_decode_io_error(
+      EINVAL, mk_string("timezone retrieval is Windows-only")));
+}
+
 /* monoMsNow : BaseIO Nat */
 extern "C" LEAN_EXPORT obj_res lean_io_mono_ms_now(obj_arg /* w */) {
   // TODO
@@ -252,6 +273,23 @@ extern "C" LEAN_EXPORT obj_res lean_st_ref_ptr_eq(b_obj_arg ref1,
 
 extern "C" LEAN_EXPORT obj_res lean_io_exit(uint8_t code, obj_arg /* w */) {
   exit(code);
+}
+
+extern "C" LEAN_EXPORT obj_res
+lean_runtime_mark_multi_threaded(obj_arg a, obj_arg /* w */) {
+  lean_mark_mt(a);
+  return io_result_mk_ok(a);
+}
+
+extern "C" LEAN_EXPORT obj_res lean_runtime_mark_persistent(obj_arg a,
+                                                            obj_arg /* w */) {
+  lean_mark_persistent(a);
+  return io_result_mk_ok(a);
+}
+
+extern "C" LEAN_EXPORT obj_res lean_runtime_forget(obj_arg /* a */,
+                                                   obj_arg /* w */) {
+  return io_result_mk_ok(box(0));
 }
 
 void initialize_io() {
